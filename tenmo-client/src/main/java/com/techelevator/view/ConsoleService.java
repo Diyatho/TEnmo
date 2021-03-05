@@ -6,6 +6,9 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
+import com.techelevator.tenmo.models.TransferFunds;
+import com.techelevator.tenmo.models.User;
+
 public class ConsoleService {
 
 	private PrintWriter out;
@@ -73,4 +76,25 @@ public class ConsoleService {
 		} while(result == null);
 		return result;
 	}
+	 public void printError(String errorMessage) {
+		    System.err.println(errorMessage);
+	 }
+	 public void printUsers(User[] users) {
+		 System.out.println("---------------------------------------");
+		 System.out.println("ID" + String.format("%1$18s", "Name"));
+		 System.out.println("---------------------------------------");
+		 for(User user : users) {
+			 System.out.println(user.getId() + String.format("%1$18s", user.getUsername()));
+			 //System.out.println(user.getId() + ". " + user.getUsername());
+		 }
+		 
+	 }
+	 public void printTransactions(TransferFunds[] transferFunds) {
+		 System.out.println("---------------------------------------");
+		 System.out.println("ID" + String.format("%1$18s", "Sender") + String.format("%1$18s", "Receiever") + String.format("%1$18s", "Amount"));
+		 System.out.println("---------------------------------------");
+		 for(TransferFunds transferFund : transferFunds) {
+			 System.out.println(transferFund.getTransferId() + String.format("%1$18s", transferFund.getSenderId()) + String.format("%1$18s", transferFund.getReceiverId()) + String.format("%1$18s", "$") + String.format("%1$4s", transferFund.getAmount()));
+		 }
+	 }
 }
