@@ -1,5 +1,6 @@
 package com.techelevator.tenmo.dao;
 
+import com.techelevator.tenmo.model.TransactionHistory;
 import com.techelevator.tenmo.model.TransferFunds;
 import com.techelevator.tenmo.model.User;
 import java.math.BigDecimal;
@@ -22,5 +23,5 @@ public interface UserDAO {
     
     boolean transfer(TransferFunds transferFunds);
     
-    List<TransferFunds> getUserHistory(int id);
+    List<TransactionHistory> getUserHistory(int id);
 }

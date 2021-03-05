@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.techelevator.tenmo.dao.UserDAO;
+import com.techelevator.tenmo.model.TransactionHistory;
 import com.techelevator.tenmo.model.TransferFunds;
 import com.techelevator.tenmo.model.User;
 
@@ -37,7 +38,7 @@ public class TenmoTransactionsController {
 		  return userDAO.transfer(transferFunds);
 	  }
 	  @RequestMapping( path = "/{id}/history", method = RequestMethod.GET)
-	  public List<TransferFunds> getUserHistory(@PathVariable int id) {
+	  public List<TransactionHistory> getUserHistory(@PathVariable int id) {
 		  return userDAO.getUserHistory(id);
 	  }
 }

@@ -11,7 +11,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import com.techelevator.tenmo.models.AuthenticatedUser;
-import com.techelevator.tenmo.models.TransactionHistoryModel;
+import com.techelevator.tenmo.models.TransactionHistory;
 import com.techelevator.tenmo.models.TransferFunds;
 import com.techelevator.tenmo.models.User;
 import com.techelevator.tenmo.models.UserCredentials;
@@ -103,9 +103,8 @@ public class App {
 
 	private void viewTransferHistory() {
 		try {
-			TransactionHistoryModel[] history = restTemplate.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/history", HttpMethod.GET, makeAuthEntity(), TransactionHistoryModel[].class).getBody();
+			TransactionHistory[] history = restTemplate.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/history", HttpMethod.GET, makeAuthEntity(), TransactionHistory[].class).getBody();
 		console.printTransactions(history);	
-		System.out.println(" " + currentBalance);
 		} catch (RestClientResponseException e) {
 			console.printError(e.getRawStatusCode() + " " + e.getStatusText());
 		} catch (ResourceAccessException e) {
