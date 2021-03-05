@@ -144,7 +144,11 @@ public class UserSqlDAO implements UserDAO {
 	@Override
 	public List<TransactionHistory> getUserHistory(int id) {
 		List<TransactionHistory> transactions = new ArrayList<>();
-		String sqlTransactionDetails = "SELECT transfer_id, transfer_type_id, transfer_status_id, account_from, account_to, amount FROM transfers WHERE account_from = ? OR account_to = ?"; 
+		String sqlTransactionDetails = "Select transfer_id, transfer_type_id, transfer_status_id, amount,users.username as sender, userscopy.username as receiver from transfers\n"
+				+ "join accounts on transfers.account_from =  accounts.account_id\n"
+				+ "join users on accounts.account_id =  users.user_id\n"
+				+ "join accounts as acc on transfers.account_to =  acc.account_id\n"
+				+ "join users as userscopy on acc.account_id =  userscopy.user_id"; 
 		SqlRowSet result = jdbcTemplate.queryForRowSet(sqlTransactionDetails, id, id);
 		while(result.next()) {
 			TransactionHistory transaction = mapRowToTransaction(result);
@@ -159,13 +163,12 @@ public class UserSqlDAO implements UserDAO {
 		transaction.setTransferId(result.getInt("transfer_id"));
 		transaction.setTransfer_type_id(result.getInt("transfer_type_id"));
 		transaction.setTransfer_status_id(result.getInt("transfer_status_id"));
-		transaction.setSenderName("test");
-		transaction.setReceiverName("test");
+		transaction.setSenderName(result.getString("sender"));
+		transaction.setReceiverName(result.getString("receiver"));
 		transaction.setAmount(result.getBigDecimal("amount"));
-		
 
 		return transaction;
-	
+
 	}
 
 }
