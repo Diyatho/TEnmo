@@ -73,4 +73,8 @@ public class ConsoleService {
 		} while(result == null);
 		return result;
 	}
+	
+	public void printError(String errorMessage) {
+	    System.err.println(errorMessage);
+	  }
 }

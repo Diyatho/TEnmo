@@ -1,10 +1,18 @@
 package com.techelevator.tenmo;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.RestTemplate;
+
 import com.techelevator.tenmo.models.AuthenticatedUser;
 import com.techelevator.tenmo.models.UserCredentials;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.view.ConsoleService;
+
 
 public class App {
 
@@ -25,6 +33,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
     private AuthenticatedUser currentUser;
     private ConsoleService console;
     private AuthenticationService authenticationService;
+    public RestTemplate restTemplate = new RestTemplate();
 
     public static void main(String[] args) {
     	App app = new App(new ConsoleService(System.in, System.out), new AuthenticationService(API_BASE_URL));
@@ -67,8 +76,14 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		}
 	}
 
-	private void viewCurrentBalance() {
-		// TODO Auto-generated method stub
+		private void viewCurrentBalance() {
+			try {
+				int currentBalance = restTemplate.exchange(API_BASE_URL + "/" + currentUser.getUser().getId() + "/balance", HttpMethod.GET, makeAuthEntity(), Integer.class).getBody();
+			} catch (RestClientResponseException e) {
+				console.printError(e.getRawStatusCode() + " " + e.getStatusText());
+			} catch (ResourceAccessException e) {
+				console.printError(e.getMessage());
+			}
 		
 	}
 
@@ -150,5 +165,12 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		String username = console.getUserInput("Username");
 		String password = console.getUserInput("Password");
 		return new UserCredentials(username, password);
+	}
+	
+	private HttpEntity makeAuthEntity() {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBearerAuth(currentUser.getToken());
+		HttpEntity entity = new HttpEntity<>(headers);
+		return entity;
 	}
 }
