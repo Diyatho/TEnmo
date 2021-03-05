@@ -1,5 +1,6 @@
 package com.techelevator.tenmo.dao;
 
+import com.techelevator.tenmo.model.TransactionHistory;
 import com.techelevator.tenmo.model.TransferFunds;
 import com.techelevator.tenmo.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -141,10 +142,30 @@ public class UserSqlDAO implements UserDAO {
 	}
 
 	@Override
-	public List<TransferFunds> getUserHistory(int id) {
-		//String sqlTransactionDetails = "" 
-		//SELECT  transfer_type_id, transfer_status_id, account_from, account_to, amount FROM transfers WHERE account_from = 3 OR account_to = 3;
-		return null;
+	public List<TransactionHistory> getUserHistory(int id) {
+		List<TransactionHistory> transactions = new ArrayList<>();
+		String sqlTransactionDetails = "SELECT transfer_id, transfer_type_id, transfer_status_id, account_from, account_to, amount FROM transfers WHERE account_from = ? OR account_to = ?"; 
+		SqlRowSet result = jdbcTemplate.queryForRowSet(sqlTransactionDetails, id, id);
+		while(result.next()) {
+			TransactionHistory transaction = mapRowToTransaction(result);
+			transactions.add(transaction);
+			
+		}
+		return transactions;
+	}
+
+	private TransactionHistory mapRowToTransaction(SqlRowSet result) {
+		TransactionHistory transaction = new TransactionHistory();
+		transaction.setTransferId(result.getInt("transfer_id"));
+		transaction.setTransfer_type_id(result.getInt("transfer_type_id"));
+		transaction.setTransfer_status_id(result.getInt("transfer_status_id"));
+		transaction.setSenderName("test");
+		transaction.setReceiverName("test");
+		transaction.setAmount(result.getBigDecimal("amount"));
+		
+
+		return transaction;
+	
 	}
 
 }

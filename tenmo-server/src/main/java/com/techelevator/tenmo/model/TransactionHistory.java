@@ -2,15 +2,15 @@ package com.techelevator.tenmo.model;
 
 import java.math.BigDecimal;
 
-public class TransactionHistoryModel {
+public class TransactionHistory {
 	
 	private Integer transferId;
 	private Integer transfer_type_id;
 	private Integer transfer_status_id;
-//	private Integer senderId;
-//	private Integer receiverId;
-	private String personName;
+	private String senderName;
+	private String receiverName;
 	private BigDecimal amount;
+	
 	public Integer getTransferId() {
 		return transferId;
 	}
@@ -29,29 +29,23 @@ public class TransactionHistoryModel {
 	public void setTransfer_status_id(Integer transfer_status_id) {
 		this.transfer_status_id = transfer_status_id;
 	}
-//	public Integer getSenderId() {
-//		return senderId;
-//	}
-//	public void setSenderId(Integer senderId) {
-//		this.senderId = senderId;
-//	}
-//	public Integer getReceiverId() {
-//		return receiverId;
-//	}
-//	public void setReceiverId(Integer receiverId) {
-//		this.receiverId = receiverId;
-//	}
 	public BigDecimal getAmount() {
 		return amount;
 	}
 	public void setAmount(BigDecimal amount) {
 		this.amount = amount;
 	}
-	public String getPersonName() {
-		return personName;
+	public String getSenderName() {
+		return senderName;
 	}
-	public void setPersonName(String personName) {
-		this.personName = personName;
+	public void setSenderName(String senderName) {
+		this.senderName = senderName;
+	}
+	public String getReceiverName() {
+		return receiverName;
+	}
+	public void setReceiverName(String receiverName) {
+		this.receiverName = receiverName;
 	}
 	
 
