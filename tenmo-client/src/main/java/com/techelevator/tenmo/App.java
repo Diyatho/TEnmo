@@ -10,14 +10,15 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
-
 import com.techelevator.tenmo.models.AuthenticatedUser;
+import com.techelevator.tenmo.models.TransactionHistoryModel;
 import com.techelevator.tenmo.models.TransferFunds;
 import com.techelevator.tenmo.models.User;
 import com.techelevator.tenmo.models.UserCredentials;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.view.ConsoleService;
+
 
 public class App {
 
@@ -102,8 +103,8 @@ public class App {
 
 	private void viewTransferHistory() {
 		try {
-		TransferFunds[] transferFunds = restTemplate.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/history", HttpMethod.GET, makeAuthEntity(), TransferFunds[].class).getBody();
-		console.printTransactions(transferFunds);	
+			TransactionHistoryModel[] history = restTemplate.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/history", HttpMethod.GET, makeAuthEntity(), TransactionHistoryModel[].class).getBody();
+		console.printTransactions(history);	
 		System.out.println(" " + currentBalance);
 		} catch (RestClientResponseException e) {
 			console.printError(e.getRawStatusCode() + " " + e.getStatusText());
@@ -208,7 +209,6 @@ public class App {
 		String password = console.getUserInput("Password");
 		return new UserCredentials(username, password);
 	}
-
 	private HttpEntity makeAuthEntity() {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setBearerAuth(currentUser.getToken());

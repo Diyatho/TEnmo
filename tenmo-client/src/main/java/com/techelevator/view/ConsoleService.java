@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
+import com.techelevator.tenmo.models.TransactionHistoryModel;
 import com.techelevator.tenmo.models.TransferFunds;
 import com.techelevator.tenmo.models.User;
 
@@ -89,12 +90,22 @@ public class ConsoleService {
 		 }
 		 
 	 }
-	 public void printTransactions(TransferFunds[] transferFunds) {
+	 public void printTransactions(TransactionHistoryModel[] history) {
+		 String direction = null, personName = null;
 		 System.out.println("---------------------------------------");
 		 System.out.println("ID" + String.format("%1$18s", "Sender") + String.format("%1$18s", "Receiever") + String.format("%1$18s", "Amount"));
 		 System.out.println("---------------------------------------");
-		 for(TransferFunds transferFund : transferFunds) {
-			 System.out.println(transferFund.getTransferId() + String.format("%1$18s", transferFund.getSenderId()) + String.format("%1$18s", transferFund.getReceiverId()) + String.format("%1$18s", "$") + String.format("%1$4s", transferFund.getAmount()));
+		 for(TransactionHistoryModel transaction : history) {
+			 if(transaction.getTransfer_type_id() == 2) {
+				 direction = "To:";
+				 personName = transaction.getPersonName();
+			 }
+			 else if(transaction.getTransfer_type_id() == 1) {
+				 direction = "From:";
+			 }
+			 
+			 
+			 System.out.println(transaction.getTransferId() + String.format("%1$18s", direction) + String.format("%1$18s", personName) + String.format("%1$18s", "$") + String.format("%1$4s", transaction.getAmount()));
 		 }
 	 }
 }

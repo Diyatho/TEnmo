@@ -142,6 +142,7 @@ public class UserSqlDAO implements UserDAO {
 
 	@Override
 	public List<TransferFunds> getUserHistory(int id) {
+		//String sqlTransactionDetails = "" 
 		//SELECT  transfer_type_id, transfer_status_id, account_from, account_to, amount FROM transfers WHERE account_from = 3 OR account_to = 3;
 		return null;
 	}
