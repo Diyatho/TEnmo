@@ -103,8 +103,11 @@ public class App {
 
 	private void viewTransferHistory() {
 		try {
+			  
 			TransactionHistory[] history = restTemplate.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/history", HttpMethod.GET, makeAuthEntity(), TransactionHistory[].class).getBody();
-		console.printTransactions(history);	
+		console.printTransactions(history, currentUser);
+		int transferID = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel): ");
+		console.printTransactionDetails(transferID, history);
 		} catch (RestClientResponseException e) {
 			console.printError(e.getRawStatusCode() + " " + e.getStatusText());
 		} catch (ResourceAccessException e) {
