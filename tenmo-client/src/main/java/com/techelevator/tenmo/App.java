@@ -117,7 +117,18 @@ public class App {
 	}
 
 	private void viewPendingRequests() {
-		// TODO Auto-generated method stub
+		try {
+			  
+			TransactionHistory[] requests = restTemplate.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/requests", HttpMethod.GET, makeAuthEntity(), TransactionHistory[].class).getBody();
+		console.printPendingRequests(requests);
+		int transferID = console.getUserInputInteger("Please enter transfer ID to Approve/Reject (0 to cancel): ");
+		
+		//console.print(transferID, requests);
+		} catch (RestClientResponseException e) {
+			console.printError(e.getRawStatusCode() + " " + e.getStatusText());
+		} catch (ResourceAccessException e) {
+			console.printError(e.getMessage());
+		}
 
 	}
 
@@ -130,7 +141,7 @@ public class App {
 					.getBody();
 			System.out.println("Registered Users");
 			console.printUsers(users);
-			int otherUserId = console.getUserInputInteger("Select the user to send money to ");
+			int otherUserId = console.getUserInputInteger("Enter ID of user you are sending to (0 to cancel): ");
 			BigDecimal amountToBeSent = new BigDecimal(console.getUserInput("Enter amount of money to be sent "));
 			TransferFunds transferFunds = new TransferFunds(currentUser.getUser().getId(), otherUserId, amountToBeSent);
 			Boolean isTransfered = restTemplate.exchange(API_BASE_URL + "/tenmo/transfer", HttpMethod.POST, makeTransferEntity(transferFunds), Boolean.class).getBody();
@@ -148,7 +159,28 @@ public class App {
 	}
 
 	private void requestBucks() {
-		// TODO Auto-generated method stub
+		try {
+			User[] users = restTemplate
+					.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/getOtherUsers",
+							HttpMethod.GET, makeAuthEntity(), User[].class)
+					.getBody();
+			System.out.println("Registered Users");
+			console.printUsers(users);
+			int otherUserId = console.getUserInputInteger("Enter ID of user you are requesting from (0 to cancel): ");
+			BigDecimal amountRequested = new BigDecimal(console.getUserInput("Enter amount of money to be sent "));
+			TransferFunds transferFunds = new TransferFunds(otherUserId,currentUser.getUser().getId(), amountRequested);
+			Boolean isRequested = restTemplate.exchange(API_BASE_URL + "/tenmo/request", HttpMethod.POST, makeTransferEntity(transferFunds), Boolean.class).getBody();
+			if(isRequested == true) {
+				System.out.println("Money requested successfully");
+				//viewCurrentBalance();
+			}
+		} catch (RestClientResponseException e) {
+			console.printError(e.getRawStatusCode() + " " + e.getStatusText());
+		} catch (ResourceAccessException e) {
+			console.printError(e.getMessage());
+		}
+		
+	
 
 	}
 

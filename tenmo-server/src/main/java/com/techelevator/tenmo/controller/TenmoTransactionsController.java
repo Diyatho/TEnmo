@@ -41,4 +41,14 @@ public class TenmoTransactionsController {
 	  public List<TransactionHistory> getUserHistory(@PathVariable int id) {
 		  return userDAO.getUserHistory(id);
 	  }
+	  
+	  @RequestMapping( path = "/request", method = RequestMethod.POST)
+	  public boolean request(@RequestBody TransferFunds transferFunds) {
+		  return userDAO.request(transferFunds);
+	  }
+	  
+	  @RequestMapping( path = "/{id}/requests", method = RequestMethod.GET)
+	  public List<TransactionHistory> getPendingRequests(@PathVariable int id) {
+		  return userDAO.getPendingRequests(id);
+	  }
 }
