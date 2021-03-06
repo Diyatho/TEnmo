@@ -14,11 +14,11 @@ import com.techelevator.tenmo.models.AuthenticatedUser;
 import com.techelevator.tenmo.models.TransactionHistory;
 import com.techelevator.tenmo.models.TransferFunds;
 import com.techelevator.tenmo.models.User;
+import com.techelevator.tenmo.models.UserAction;
 import com.techelevator.tenmo.models.UserCredentials;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.view.ConsoleService;
-
 
 public class App {
 
@@ -103,11 +103,14 @@ public class App {
 
 	private void viewTransferHistory() {
 		try {
-			  
-			TransactionHistory[] history = restTemplate.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/history", HttpMethod.GET, makeAuthEntity(), TransactionHistory[].class).getBody();
-		console.printTransactions(history, currentUser);
-		int transferID = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel): ");
-		console.printTransactionDetails(transferID, history);
+
+			TransactionHistory[] history = restTemplate
+					.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/history", HttpMethod.GET,
+							makeAuthEntity(), TransactionHistory[].class)
+					.getBody();
+			console.printTransactions(history, currentUser);
+			int transferID = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel): ");
+			console.printTransactionDetails(transferID, history);
 		} catch (RestClientResponseException e) {
 			console.printError(e.getRawStatusCode() + " " + e.getStatusText());
 		} catch (ResourceAccessException e) {
@@ -118,18 +121,54 @@ public class App {
 
 	private void viewPendingRequests() {
 		try {
-			  
+			boolean actionResponse = false;
 			TransactionHistory[] requests = restTemplate.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/requests", HttpMethod.GET, makeAuthEntity(), TransactionHistory[].class).getBody();
 		console.printPendingRequests(requests);
-		int transferID = console.getUserInputInteger("Please enter transfer ID to Approve/Reject (0 to cancel): ");
+		int transferId = console.getUserInputInteger("Please enter transfer ID to Approve/Reject (0 to cancel): ");
+		int action = console.getUserInputInteger("1: Approve\n2: Reject\n0: Don't approve or reject\nPlease choose an option");
+		if (action == 1){
+			approve(requests, transferId);
+		}
+		if(action == 1 || action == 2) {
+			UserAction userAction = new UserAction(transferId, action, currentUser.getUser().getId());
+			actionResponse = restTemplate.exchange(API_BASE_URL + "/tenmo/action", HttpMethod.POST, makeActionEntity(userAction), Boolean.class).getBody();
+		}
+		if (actionResponse) {
+			if(action == 1) {
+				System.out.println("Request Approved");
+			}
+			if(action == 2) {
+				System.out.println("Request Rejected");
+			}
+		}
+		else {
+			System.out.println("Unable to execute");
+		}
 		
-		//console.print(transferID, requests);
 		} catch (RestClientResponseException e) {
 			console.printError(e.getRawStatusCode() + " " + e.getStatusText());
 		} catch (ResourceAccessException e) {
 			console.printError(e.getMessage());
 		}
 
+	}
+	private boolean approve (TransactionHistory[] requests, int transferId) {
+		viewCurrentBalance();
+		boolean actionResponse = false;
+		for (TransactionHistory request : requests) {
+			if(request.getTransferId() == transferId) {
+				if(request.getAmount().compareTo(currentBalance) > 0) {
+					System.out.println("Insufficient balance to approve request");
+					return false;
+				}
+				else {
+					UserAction userAction = new UserAction(transferId, 1, currentUser.getUser().getId());
+					actionResponse = restTemplate.exchange(API_BASE_URL + "/tenmo/action", HttpMethod.POST, makeActionEntity(userAction), Boolean.class).getBody();
+				}
+				
+			}
+		}
+		return actionResponse;
 	}
 
 	private void sendBucks() {
@@ -144,8 +183,9 @@ public class App {
 			int otherUserId = console.getUserInputInteger("Enter ID of user you are sending to (0 to cancel): ");
 			BigDecimal amountToBeSent = new BigDecimal(console.getUserInput("Enter amount of money to be sent "));
 			TransferFunds transferFunds = new TransferFunds(currentUser.getUser().getId(), otherUserId, amountToBeSent);
-			Boolean isTransfered = restTemplate.exchange(API_BASE_URL + "/tenmo/transfer", HttpMethod.POST, makeTransferEntity(transferFunds), Boolean.class).getBody();
-			if(isTransfered == true) {
+			Boolean isTransfered = restTemplate.exchange(API_BASE_URL + "/tenmo/transfer", HttpMethod.POST,
+					makeTransferEntity(transferFunds), Boolean.class).getBody();
+			if (isTransfered == true) {
 				System.out.println("Money sent successfully");
 				viewCurrentBalance();
 			}
@@ -168,19 +208,19 @@ public class App {
 			console.printUsers(users);
 			int otherUserId = console.getUserInputInteger("Enter ID of user you are requesting from (0 to cancel): ");
 			BigDecimal amountRequested = new BigDecimal(console.getUserInput("Enter amount of money to be sent "));
-			TransferFunds transferFunds = new TransferFunds(otherUserId,currentUser.getUser().getId(), amountRequested);
-			Boolean isRequested = restTemplate.exchange(API_BASE_URL + "/tenmo/request", HttpMethod.POST, makeTransferEntity(transferFunds), Boolean.class).getBody();
-			if(isRequested == true) {
+			TransferFunds transferFunds = new TransferFunds(otherUserId, currentUser.getUser().getId(),
+					amountRequested);
+			Boolean isRequested = restTemplate.exchange(API_BASE_URL + "/tenmo/request", HttpMethod.POST,
+					makeTransferEntity(transferFunds), Boolean.class).getBody();
+			if (isRequested == true) {
 				System.out.println("Money requested successfully");
-				//viewCurrentBalance();
+				// viewCurrentBalance();
 			}
 		} catch (RestClientResponseException e) {
 			console.printError(e.getRawStatusCode() + " " + e.getStatusText());
 		} catch (ResourceAccessException e) {
 			console.printError(e.getMessage());
 		}
-		
-	
 
 	}
 
@@ -243,18 +283,27 @@ public class App {
 		String password = console.getUserInput("Password");
 		return new UserCredentials(username, password);
 	}
+
 	private HttpEntity makeAuthEntity() {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setBearerAuth(currentUser.getToken());
 		HttpEntity entity = new HttpEntity<>(headers);
 		return entity;
 	}
-	 private HttpEntity<TransferFunds> makeTransferEntity(TransferFunds transferFunds) {
-	        HttpHeaders headers = new HttpHeaders();
-	        headers.setContentType(MediaType.APPLICATION_JSON);
-	        headers.setBearerAuth(currentUser.getToken());
-	        HttpEntity<TransferFunds> entity = new HttpEntity<>(transferFunds, headers);
-	        return entity;
-	    }
-	
+
+	private HttpEntity<TransferFunds> makeTransferEntity(TransferFunds transferFunds) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.setBearerAuth(currentUser.getToken());
+		HttpEntity<TransferFunds> entity = new HttpEntity<>(transferFunds, headers);
+		return entity;
+	}
+
+	private HttpEntity<UserAction> makeActionEntity(UserAction userAction) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.setBearerAuth(currentUser.getToken());
+		HttpEntity<UserAction> entity = new HttpEntity<>(userAction, headers);
+		return entity;
+	}
 }

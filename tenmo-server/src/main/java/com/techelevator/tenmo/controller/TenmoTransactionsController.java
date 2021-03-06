@@ -14,6 +14,7 @@ import com.techelevator.tenmo.dao.UserDAO;
 import com.techelevator.tenmo.model.TransactionHistory;
 import com.techelevator.tenmo.model.TransferFunds;
 import com.techelevator.tenmo.model.User;
+import com.techelevator.tenmo.model.UserAction;
 
 @RequestMapping("/tenmo")
 @RestController
@@ -50,5 +51,9 @@ public class TenmoTransactionsController {
 	  @RequestMapping( path = "/{id}/requests", method = RequestMethod.GET)
 	  public List<TransactionHistory> getPendingRequests(@PathVariable int id) {
 		  return userDAO.getPendingRequests(id);
+	  }
+	  @RequestMapping( path = "/tenmo/action", method = RequestMethod.POST)
+	  public boolean actionOnRequest (@RequestBody UserAction userAction) {
+		  return userDAO.actionOnRequest(userAction);
 	  }
 }
