@@ -3,6 +3,8 @@ package com.techelevator.tenmo.dao;
 import com.techelevator.tenmo.model.TransactionHistory;
 import com.techelevator.tenmo.model.TransferFunds;
 import com.techelevator.tenmo.model.User;
+import com.techelevator.tenmo.model.UserAction;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -140,6 +142,18 @@ public class UserSqlDAO implements UserDAO {
 		}
 		return false;
 	}
+	@Override
+	public boolean actionOnRequest(UserAction userAction) {
+		if(userAction.getAction() == 1) {
+			
+		String sqlApproveRequest = "UPDATE transfers SET transfer_status_id = ? WHERE transfer_id = ? AND transfer_type_id = ? AND transfer_status_id = ? AND account_from = ?";
+		jdbcTemplate.update(sqlApproveRequest, 2, userAction.getTransferId(), 1, 1, userAction.getUserId());
+		String sqlUpdateSenderBalance = "UPDATE accounts SET balance = ? WHERE user_id = ?";
+//		BigDecimal senderBalanceAfterTransfer = getBalance(userAction.getUserId())
+//				.subtract(userAction.;
+		}
+		return false;
+	}
 	
 	@Override
 	public boolean request(TransferFunds transferFunds) {
@@ -166,7 +180,6 @@ public class UserSqlDAO implements UserDAO {
 		}
 		return requests;
 	}
-	
 
 	@Override
 	public List<TransactionHistory> getUserHistory(int id) {
@@ -201,8 +214,5 @@ public class UserSqlDAO implements UserDAO {
 
 	}
 
-	
-
-	
 
 }

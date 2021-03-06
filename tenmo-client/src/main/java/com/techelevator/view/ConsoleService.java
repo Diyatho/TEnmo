@@ -130,10 +130,14 @@ public class ConsoleService {
 		 System.out.println("---------------------------------------");
 		 
 		 for(TransactionHistory request : requests) {
-			 System.out.println(request.getTransferId() + addSpace(Integer.toString(request.getTransferId()).length(),12) + request.getReceiverName() + addSpace(request.getReceiverName().length(),12) + "$"+ String.format("%1$5s",request.getAmount()));
+			 System.out.println(request.getTransferId() + addSpace(Integer.toString(request.getTransferId()).length(), 12) + request.getReceiverName() + addSpace(request.getReceiverName().length(), 12) + "$"+ String.format("%1$5s",request.getAmount()));
 		 }
 		 
 	 }
+//	 public void printApprovalOptions() {
+//			 System.out.println(option.getTransfer_status_id() + ":" + " " + option.getTransfer_status_desc());
+//		 }
+	 
 	 
 	 public String addSpace(int lengthOfWord, int totalLength)
 		{
