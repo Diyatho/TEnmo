@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
+import com.techelevator.tenmo.models.AuthenticatedUser;
 import com.techelevator.tenmo.models.TransactionHistory;
 import com.techelevator.tenmo.models.TransferFunds;
 import com.techelevator.tenmo.models.User;
@@ -90,15 +91,21 @@ public class ConsoleService {
 		 }
 		 
 	 }
-	 public void printTransactions(TransactionHistory[] history) {
+	 public void printTransactions(TransactionHistory[] history, AuthenticatedUser currentUser) {
 		 String direction = null, personName = null;
 		 System.out.println("---------------------------------------");
-		 System.out.println("ID" + String.format("%1$18s", "From/To") + String.format("%1$18s", "Amount"));
+		 System.out.println("ID" + String.format("%1$18s", "From/To") + String.format("%1$12s", "Amount"));
 		 System.out.println("---------------------------------------");
 		 for(TransactionHistory transaction : history) {
 			 if(transaction.getTransfer_type_id() == 2) {
+				 if(transaction.getSenderName().equals(currentUser.getUser().getUsername()))  {
 				 direction = "To:";
 				 personName = transaction.getReceiverName();
+				 } 
+				 if(transaction.getReceiverName().equals(currentUser.getUser().getUsername())) {
+					direction = "From:";
+					personName = transaction.getSenderName();
+				 }
 			 }
 			 else if(transaction.getTransfer_type_id() == 1) {
 				 direction = "From:";
@@ -106,7 +113,36 @@ public class ConsoleService {
 			 }
 			 
 			 
-			 System.out.println(transaction.getTransferId() + String.format("%1$15s", direction) + String.format("%1$5s", personName) + String.format("%1$12s", "$") + String.format("%1$5s", transaction.getAmount()));
+			 //System.out.println(transaction.getTransferId() + String.format("%1$15s", direction) + String.format("%1$5s", personName) + String.format("%1$12s", "$") + String.format("%1$5s", transaction.getAmount()));
+			 System.out.println(transaction.getTransferId() + addSpace(Integer.toString(transaction.getTransferId()).length()) + direction + " " + personName + addSpace((direction + " " + personName).length()) + "$" + String.format("%1$5s", transaction.getAmount()));
 		 }
+		 
 	 }
+	 public String addSpace(int length)
+		{
+			String space ="";
+			for(int i = length; i < 13; i++) {
+				space += " ";
+			}
+			return space;
+		}
+
+	public void printTransactionDetails(int transferId, TransactionHistory[] transactions) {
+		TransactionHistory history = new TransactionHistory();
+		for (TransactionHistory transaction : transactions) {
+			if(transaction.getTransferId() == transferId) {
+				history = transaction;
+			}
+		}
+		System.out.println("---------------------------------------");
+		System.out.println("Transfer Details");
+		System.out.println("---------------------------------------");
+		System.out.println("Id: " + history.getTransferId());
+		System.out.println("From: " + history.getSenderName());
+		System.out.println("To: " + history.getReceiverName());
+		System.out.println("Type: " + history.getTransfer_type_id());
+		System.out.println("Status: " + history.getTransfer_status_desc());
+		System.out.println("Amount: " + history.getAmount());
+		
+	}
 }

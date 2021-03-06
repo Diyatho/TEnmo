@@ -7,9 +7,11 @@ public class TransactionHistory {
 	private Integer transferId;
 	private Integer transfer_type_id;
 	private Integer transfer_status_id;
+	private String transfer_status_desc;
 	private String senderName;
 	private String receiverName;
 	private BigDecimal amount;
+	
 	public Integer getTransferId() {
 		return transferId;
 	}
@@ -46,6 +48,12 @@ public class TransactionHistory {
 	}
 	public void setReceiverName(String receiverName) {
 		this.receiverName = receiverName;
+	}
+	public String getTransfer_status_desc() {
+		return transfer_status_desc;
+	}
+	public void setTransfer_status_desc(String transfer_status_desc) {
+		this.transfer_status_desc = transfer_status_desc;
 	}
 	
 
