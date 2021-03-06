@@ -23,5 +23,9 @@ public interface UserDAO {
     
     boolean transfer(TransferFunds transferFunds);
     
+    boolean request(TransferFunds transferFunds);
+    
+    List<TransactionHistory> getPendingRequests(int id);
+    
     List<TransactionHistory> getUserHistory(int id);
 }

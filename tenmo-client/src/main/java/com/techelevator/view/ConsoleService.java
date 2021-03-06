@@ -83,6 +83,7 @@ public class ConsoleService {
 	 }
 	 public void printUsers(User[] users) {
 		 System.out.println("---------------------------------------");
+		 System.out.println("Users");
 		 System.out.println("ID" + String.format("%1$18s", "Name"));
 		 System.out.println("---------------------------------------");
 		 for(User user : users) {
@@ -94,6 +95,7 @@ public class ConsoleService {
 	 public void printTransactions(TransactionHistory[] history, AuthenticatedUser currentUser) {
 		 String direction = null, personName = null;
 		 System.out.println("---------------------------------------");
+		 System.out.println("Transfers");
 		 System.out.println("ID" + String.format("%1$18s", "From/To") + String.format("%1$18s", "Amount"));
 		 System.out.println("---------------------------------------");
 		 for(TransactionHistory transaction : history) {
@@ -118,6 +120,21 @@ public class ConsoleService {
 		 }
 		 
 	 }
+	 
+	
+	 public void printPendingRequests(TransactionHistory[] requests) {
+		 
+		 System.out.println("---------------------------------------");
+		 System.out.println("Pending Transfers");
+		 System.out.println("ID" + String.format("%1$12s", "To") + String.format("%1$18s", "Amount"));
+		 System.out.println("---------------------------------------");
+		 
+		 for(TransactionHistory request : requests) {
+			 System.out.println(request.getTransferId() + addSpace(Integer.toString(request.getTransferId()).length(),12) + request.getReceiverName() + addSpace(request.getReceiverName().length(),12) + "$"+ String.format("%1$5s",request.getAmount()));
+		 }
+		 
+	 }
+	 
 	 public String addSpace(int lengthOfWord, int totalLength)
 		{
 			String space ="";

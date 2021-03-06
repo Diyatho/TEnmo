@@ -140,6 +140,33 @@ public class UserSqlDAO implements UserDAO {
 		}
 		return false;
 	}
+	
+	@Override
+	public boolean request(TransferFunds transferFunds) {
+		
+		String sqlRequestMoney = "INSERT INTO transfers(transfer_type_id,transfer_status_id,account_from,account_to,amount)VALUES (?,?,?,?,?)";
+		int insertSuccessful = jdbcTemplate.update(sqlRequestMoney, 1, 1, transferFunds.getSenderId(), transferFunds.getReceiverId(),transferFunds.getAmount());
+		return insertSuccessful == 1;
+	}
+	
+	@Override
+	public List<TransactionHistory> getPendingRequests(int id) {
+		List<TransactionHistory> requests = new ArrayList<>();
+		String sqlGetPendingRequests = "Select transfer_id, username as receiver, amount from transfers\n"
+				+ "join accounts on transfers.account_to =  accounts.account_id\n"
+				+ "join users on accounts.account_id =  users.user_id\n"
+				+ "where transfer_type_id = ? and transfer_status_id = ? and account_from = ?";
+		SqlRowSet result = jdbcTemplate.queryForRowSet(sqlGetPendingRequests, 1, 1, id);
+		while(result.next()) {
+			TransactionHistory request = new TransactionHistory();
+			request.setTransferId(result.getInt("transfer_id"));
+			request.setReceiverName(result.getString("receiver"));
+			request.setAmount(result.getBigDecimal("amount"));
+			requests.add(request);
+		}
+		return requests;
+	}
+	
 
 	@Override
 	public List<TransactionHistory> getUserHistory(int id) {
@@ -173,5 +200,9 @@ public class UserSqlDAO implements UserDAO {
 		return transaction;
 
 	}
+
+	
+
+	
 
 }
