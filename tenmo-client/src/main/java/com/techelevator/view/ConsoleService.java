@@ -94,12 +94,12 @@ public class ConsoleService {
 	 public void printTransactions(TransactionHistory[] history, AuthenticatedUser currentUser) {
 		 String direction = null, personName = null;
 		 System.out.println("---------------------------------------");
-		 System.out.println("ID" + String.format("%1$18s", "From/To") + String.format("%1$12s", "Amount"));
+		 System.out.println("ID" + String.format("%1$18s", "From/To") + String.format("%1$18s", "Amount"));
 		 System.out.println("---------------------------------------");
 		 for(TransactionHistory transaction : history) {
 			 if(transaction.getTransfer_type_id() == 2) {
 				 if(transaction.getSenderName().equals(currentUser.getUser().getUsername()))  {
-				 direction = "To:";
+				 direction = "To:  ";
 				 personName = transaction.getReceiverName();
 				 } 
 				 if(transaction.getReceiverName().equals(currentUser.getUser().getUsername())) {
@@ -114,14 +114,14 @@ public class ConsoleService {
 			 
 			 
 			 //System.out.println(transaction.getTransferId() + String.format("%1$15s", direction) + String.format("%1$5s", personName) + String.format("%1$12s", "$") + String.format("%1$5s", transaction.getAmount()));
-			 System.out.println(transaction.getTransferId() + addSpace(Integer.toString(transaction.getTransferId()).length()) + direction + " " + personName + addSpace((direction + " " + personName).length()) + "$" + String.format("%1$5s", transaction.getAmount()));
+			 System.out.println(transaction.getTransferId() + addSpace(Integer.toString(transaction.getTransferId()).length(), 11) + direction + " " + personName + addSpace((direction + " " + personName).length(), 18) + "$" + String.format("%1$5s", transaction.getAmount()));
 		 }
 		 
 	 }
-	 public String addSpace(int length)
+	 public String addSpace(int lengthOfWord, int totalLength)
 		{
 			String space ="";
-			for(int i = length; i < 13; i++) {
+			for(int i = lengthOfWord; i <= totalLength; i++) {
 				space += " ";
 			}
 			return space;
