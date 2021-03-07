@@ -130,14 +130,20 @@ public class ConsoleService {
 	 
 	
 	 public void printPendingRequests(TransactionHistory[] requests) {
-		 
+		 if(requests == null) {
+			 System.out.println("There are no pending requests");
+			 return;
+		 }
+		 if(requests.length == 0) {
+			 System.out.println("There are no pending requests");
+			 return;
+		 }
 		 System.out.println("---------------------------------------");
 		 System.out.println("Pending Transfers");
 		 System.out.println("ID" + String.format("%1$12s", "To") + String.format("%1$18s", "Amount"));
 		 System.out.println("---------------------------------------");
 		 
 		 for(TransactionHistory request : requests) {
-			 System.out.println("print");
 			 System.out.println(request.getTransferId() + addSpace(Integer.toString(request.getTransferId()).length(), 12) + request.getReceiverName() + addSpace(request.getReceiverName().length(), 12) + "$"+ String.format("%1$5s",request.getAmount()));
 		 }
 		 

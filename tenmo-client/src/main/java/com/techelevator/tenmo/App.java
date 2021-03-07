@@ -123,29 +123,34 @@ public class App {
 	private void viewPendingRequests() {
 		try {
 			boolean actionResponse = false;
-			TransactionHistory[] requests = restTemplate.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/requests", HttpMethod.GET, makeAuthEntity(), TransactionHistory[].class).getBody();
-		console.printPendingRequests(requests);
-		int transferId = console.getUserInputInteger("Please enter transfer ID to Approve/Reject (0 to cancel): ");
-		int action = console.getUserInputInteger("1: Approve\n2: Reject\n0: Don't approve or reject\nPlease choose an option");
-		if (action == 1){
-			actionResponse = approve(requests, transferId);
-			if(actionResponse) {
-				System.out.println("Request Approved and Money transferred successfully");
-				viewCurrentBalance();
+			TransactionHistory[] requests = restTemplate
+					.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/requests", HttpMethod.GET,
+							makeAuthEntity(), TransactionHistory[].class)
+					.getBody();
+			if(requests.length == 0) {
+				System.out.println("There are no pending requests");
+				return;
 			}
-			else {
-				System.out.println("Unable to execute");
-			}
-		}
-			else if (action == 2) {
-				UserAction userAction = new UserAction(transferId, 3, currentUser.getUser().getId());
+			console.printPendingRequests(requests);
+			int transferId = console.getUserInputInteger("Please enter transfer ID to Approve/Reject (0 to cancel): ");
+			int action = console
+					.getUserInputInteger("1: Approve\n2: Reject\n0: Don't approve or reject\nPlease choose an option");
+			if (action == 1) {
+				actionResponse = approve(requests, transferId);
+				if (actionResponse) {
+					System.out.println("Request Approved and Money transferred successfully");
+					viewCurrentBalance();
+				} else {
+					System.out.println("Unable to execute");
+				}
+			} else if (action == 2) {
+				UserAction userAction = new UserAction(transferId, 2, currentUser.getUser().getId());
 				actionResponse = restTemplate.exchange(API_BASE_URL + "/tenmo/action", HttpMethod.POST,
 						makeActionEntity(userAction), Boolean.class).getBody();
-				if(actionResponse) {
+				if (actionResponse) {
 					System.out.println("Request for money rejected successfully.");
 					viewCurrentBalance();
-				}
-				else {
+				} else {
 					System.out.println("Unable to execute");
 				}
 			}
@@ -188,6 +193,11 @@ public class App {
 			console.printUsers(users);
 			boolean isMoneyEnteredValid =false;
 			int otherUserId = console.getUserInputInteger("Enter ID of user you are sending to (0 to cancel): ");
+			boolean isValidUser = checkValidUserId(users,otherUserId);
+			if(!isValidUser) {
+				System.out.println("Invalid user ID. Try again");
+				return;
+			}
 			// Loop until user inputs a value less than his current balance
 			while(!isMoneyEnteredValid) {
 				amountToBeSent = new BigDecimal(console.getUserInput("Enter amount of money to be sent "));
@@ -218,6 +228,14 @@ public class App {
 		
 	}
 
+	private boolean checkValidUserId(User[] users, int otherUserId) {
+		for(User user: users) {
+			if(user.getId() == otherUserId)
+				return true;
+		}
+		return false;
+	}
+
 	private void requestBucks() {
 		try {
 			User[] users = restTemplate
@@ -227,6 +245,11 @@ public class App {
 			System.out.println("Registered Users");
 			console.printUsers(users);
 			int otherUserId = console.getUserInputInteger("Enter ID of user you are requesting from (0 to cancel): ");
+			boolean isValidUser = checkValidUserId(users,otherUserId);
+			if(!isValidUser) {
+				System.out.println("Invalid user ID. Try again");
+				return;
+			}
 			BigDecimal amountRequested = new BigDecimal(console.getUserInput("Enter amount of money to be sent "));
 			TransferFunds transferFunds = new TransferFunds(otherUserId, currentUser.getUser().getId(),
 					amountRequested);
