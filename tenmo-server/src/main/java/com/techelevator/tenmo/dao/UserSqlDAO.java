@@ -142,27 +142,51 @@ public class UserSqlDAO implements UserDAO {
 		}
 		return false;
 	}
+
 	@Override
 	public boolean actionOnRequest(UserAction userAction) {
-		if(userAction.getAction() == 1) {
-			
-		String sqlApproveRequest = "UPDATE transfers SET transfer_status_id = ? WHERE transfer_id = ? AND transfer_type_id = ? AND transfer_status_id = ? AND account_from = ?";
-		jdbcTemplate.update(sqlApproveRequest, 2, userAction.getTransferId(), 1, 1, userAction.getUserId());
-		String sqlUpdateSenderBalance = "UPDATE accounts SET balance = ? WHERE user_id = ?";
-//		BigDecimal senderBalanceAfterTransfer = getBalance(userAction.getUserId())
-//				.subtract(userAction.;
+		if (userAction.getAction() == 1) {
+			// update transfer table: change transfer_status_id as 2(Approved)
+			String sqlApproveRequest = "UPDATE transfers SET transfer_status_id = ? WHERE transfer_id = ? AND transfer_type_id = ? AND transfer_status_id = ? AND account_from = ?";
+			jdbcTemplate.update(sqlApproveRequest, 2, userAction.getTransferId(), 1, 1, userAction.getUserId());
+
+			// Update sender balance
+			BigDecimal amountRequested = BigDecimal.ZERO;
+			int receiverAccountNumber = 0;
+			String getAmountAndReceiverAccount = "Select amount, account_to from transfers where transfer_id = ?";
+			SqlRowSet result = jdbcTemplate.queryForRowSet(getAmountAndReceiverAccount, userAction.getTransferId());
+			while (result.next()) {
+				amountRequested = result.getBigDecimal("amount");
+				receiverAccountNumber = result.getInt("account_to");
+
+			}
+			BigDecimal senderBalanceAfterTransfer = getBalance(userAction.getUserId()).subtract(amountRequested);
+			String sqlUpdateSenderBalance = "UPDATE accounts SET balance = ? WHERE user_id = ?";
+			jdbcTemplate.update(sqlUpdateSenderBalance, senderBalanceAfterTransfer, userAction.getUserId());
+
+			// Update receiver balance
+			String sqlUpdateReceiverBalance = "UPDATE accounts SET balance = ? WHERE account_id = ?";
+			BigDecimal receiverBalanceAfterTransfer = getBalance(receiverAccountNumber).add(amountRequested);
+			jdbcTemplate.update(sqlUpdateReceiverBalance, receiverBalanceAfterTransfer, receiverAccountNumber);
 		}
-		return false;
+		if(userAction.getAction() == 2) {
+			// update transfer table: change transfer_status_id as 3(Rejected)
+			String sqlRejectRequest = "UPDATE transfers SET transfer_status_id = ? WHERE transfer_id = ? AND transfer_type_id = ? AND transfer_status_id = ? AND account_from = ?";
+			jdbcTemplate.update(sqlRejectRequest, 3, userAction.getTransferId(), 3, 1, userAction.getUserId());
+			
+		}
+		return true;
 	}
-	
+
 	@Override
 	public boolean request(TransferFunds transferFunds) {
-		
+
 		String sqlRequestMoney = "INSERT INTO transfers(transfer_type_id,transfer_status_id,account_from,account_to,amount)VALUES (?,?,?,?,?)";
-		int insertSuccessful = jdbcTemplate.update(sqlRequestMoney, 1, 1, transferFunds.getSenderId(), transferFunds.getReceiverId(),transferFunds.getAmount());
+		int insertSuccessful = jdbcTemplate.update(sqlRequestMoney, 1, 1, transferFunds.getSenderId(),
+				transferFunds.getReceiverId(), transferFunds.getAmount());
 		return insertSuccessful == 1;
 	}
-	
+
 	@Override
 	public List<TransactionHistory> getPendingRequests(int id) {
 		List<TransactionHistory> requests = new ArrayList<>();
@@ -171,7 +195,7 @@ public class UserSqlDAO implements UserDAO {
 				+ "join users on accounts.account_id =  users.user_id\n"
 				+ "where transfer_type_id = ? and transfer_status_id = ? and account_from = ?";
 		SqlRowSet result = jdbcTemplate.queryForRowSet(sqlGetPendingRequests, 1, 1, id);
-		while(result.next()) {
+		while (result.next()) {
 			TransactionHistory request = new TransactionHistory();
 			request.setTransferId(result.getInt("transfer_id"));
 			request.setReceiverName(result.getString("receiver"));
@@ -190,13 +214,12 @@ public class UserSqlDAO implements UserDAO {
 				+ "join accounts as acc on transfers.account_to = acc.account_id\n"
 				+ "join users as userscopy on acc.user_id = userscopy.user_id\n"
 				+ "join transfer_statuses on transfers.transfer_status_id = transfer_statuses.transfer_status_id\n"
-				+ "WHERE account_from = ? OR account_to = ?\n"
-				+ "ORDER BY transfer_id";
+				+ "WHERE account_from = ? OR account_to = ?\n" + "ORDER BY transfer_id";
 		SqlRowSet result = jdbcTemplate.queryForRowSet(sqlTransactionDetails, id, id);
-		while(result.next()) {
+		while (result.next()) {
 			TransactionHistory transaction = mapRowToTransaction(result);
 			transactions.add(transaction);
-			
+
 		}
 		return transactions;
 	}
@@ -213,6 +236,5 @@ public class UserSqlDAO implements UserDAO {
 		return transaction;
 
 	}
-
 
 }

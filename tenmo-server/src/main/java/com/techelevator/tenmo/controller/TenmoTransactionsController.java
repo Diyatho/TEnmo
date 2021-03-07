@@ -52,8 +52,9 @@ public class TenmoTransactionsController {
 	  public List<TransactionHistory> getPendingRequests(@PathVariable int id) {
 		  return userDAO.getPendingRequests(id);
 	  }
-	  @RequestMapping( path = "/tenmo/action", method = RequestMethod.POST)
+	  @RequestMapping( path = "/action", method = RequestMethod.POST)
 	  public boolean actionOnRequest (@RequestBody UserAction userAction) {
+		  //System.out.println("Request to approve at server");
 		  return userDAO.actionOnRequest(userAction);
 	  }
 }

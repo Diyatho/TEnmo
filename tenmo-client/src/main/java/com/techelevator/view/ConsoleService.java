@@ -110,8 +110,15 @@ public class ConsoleService {
 				 }
 			 }
 			 else if(transaction.getTransfer_type_id() == 1) {
-				 direction = "From:";
-				 personName = transaction.getSenderName();
+				 
+				 if(transaction.getSenderName().equals(currentUser.getUser().getUsername()))  {
+					 direction = "To:  ";
+					 personName = transaction.getReceiverName();
+					 } 
+					 if(transaction.getReceiverName().equals(currentUser.getUser().getUsername())) {
+						direction = "From:";
+						personName = transaction.getSenderName();
+					 }
 			 }
 			 
 			 
@@ -130,6 +137,7 @@ public class ConsoleService {
 		 System.out.println("---------------------------------------");
 		 
 		 for(TransactionHistory request : requests) {
+			 System.out.println("print");
 			 System.out.println(request.getTransferId() + addSpace(Integer.toString(request.getTransferId()).length(), 12) + request.getReceiverName() + addSpace(request.getReceiverName().length(), 12) + "$"+ String.format("%1$5s",request.getAmount()));
 		 }
 		 
