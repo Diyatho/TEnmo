@@ -10,6 +10,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
+import com.techelevator.tenmo.Exceptions.NotEnoughBalanceException;
 import com.techelevator.tenmo.models.AuthenticatedUser;
 import com.techelevator.tenmo.models.TransactionHistory;
 import com.techelevator.tenmo.models.TransferFunds;
@@ -122,29 +123,37 @@ public class App {
 	private void viewPendingRequests() {
 		try {
 			boolean actionResponse = false;
-			TransactionHistory[] requests = restTemplate.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/requests", HttpMethod.GET, makeAuthEntity(), TransactionHistory[].class).getBody();
-		console.printPendingRequests(requests);
-		int transferId = console.getUserInputInteger("Please enter transfer ID to Approve/Reject (0 to cancel): ");
-		int action = console.getUserInputInteger("1: Approve\n2: Reject\n0: Don't approve or reject\nPlease choose an option");
-		if (action == 1){
-			approve(requests, transferId);
-		}
-		if(action == 1 || action == 2) {
-			UserAction userAction = new UserAction(transferId, action, currentUser.getUser().getId());
-			actionResponse = restTemplate.exchange(API_BASE_URL + "/tenmo/action", HttpMethod.POST, makeActionEntity(userAction), Boolean.class).getBody();
-		}
-		if (actionResponse) {
-			if(action == 1) {
-				System.out.println("Request Approved");
+			TransactionHistory[] requests = restTemplate
+					.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/requests", HttpMethod.GET,
+							makeAuthEntity(), TransactionHistory[].class)
+					.getBody();
+			if(requests.length == 0) {
+				System.out.println("There are no pending requests");
+				return;
 			}
-			if(action == 2) {
-				System.out.println("Request Rejected");
+			console.printPendingRequests(requests);
+			int transferId = console.getUserInputInteger("Please enter transfer ID to Approve/Reject (0 to cancel) ");
+			int action = console
+					.getUserInputInteger("1: Approve\n2: Reject\n0: Don't approve or reject\nPlease choose an option");
+			if (action == 1) {
+				actionResponse = approve(requests, transferId);
+				if (actionResponse) {
+					System.out.println("Request Approved and Money transferred successfully");
+					viewCurrentBalance();
+				} else {
+					System.out.println("Unable to execute");
+				}
+			} else if (action == 2) {
+				UserAction userAction = new UserAction(transferId, 2, currentUser.getUser().getId());
+				actionResponse = restTemplate.exchange(API_BASE_URL + "/tenmo/action", HttpMethod.POST,
+						makeActionEntity(userAction), Boolean.class).getBody();
+				if (actionResponse) {
+					System.out.println("Request for money rejected successfully.");
+					viewCurrentBalance();
+				} else {
+					System.out.println("Unable to execute");
+				}
 			}
-		}
-		else {
-			System.out.println("Unable to execute");
-		}
-		
 		} catch (RestClientResponseException e) {
 			console.printError(e.getRawStatusCode() + " " + e.getStatusText());
 		} catch (ResourceAccessException e) {
@@ -152,27 +161,29 @@ public class App {
 		}
 
 	}
-	private boolean approve (TransactionHistory[] requests, int transferId) {
+
+	private boolean approve(TransactionHistory[] requests, int transferId) {
 		viewCurrentBalance();
 		boolean actionResponse = false;
 		for (TransactionHistory request : requests) {
-			if(request.getTransferId() == transferId) {
-				if(request.getAmount().compareTo(currentBalance) > 0) {
+			if (request.getTransferId() == transferId) {
+				if (request.getAmount().compareTo(currentBalance) > 0) {
 					System.out.println("Insufficient balance to approve request");
 					return false;
-				}
-				else {
+				} else {
 					UserAction userAction = new UserAction(transferId, 1, currentUser.getUser().getId());
-					actionResponse = restTemplate.exchange(API_BASE_URL + "/tenmo/action", HttpMethod.POST, makeActionEntity(userAction), Boolean.class).getBody();
+
+					actionResponse = restTemplate.exchange(API_BASE_URL + "/tenmo/action", HttpMethod.POST,
+							makeActionEntity(userAction), Boolean.class).getBody();
 				}
-				
 			}
 		}
 		return actionResponse;
 	}
 
 	private void sendBucks() {
-
+		BigDecimal amountToBeSent = BigDecimal.ZERO;
+		
 		try {
 			User[] users = restTemplate
 					.exchange(API_BASE_URL + "/tenmo/" + currentUser.getUser().getId() + "/getOtherUsers",
@@ -180,8 +191,31 @@ public class App {
 					.getBody();
 			System.out.println("Registered Users");
 			console.printUsers(users);
+			boolean isMoneyEnteredValid =false;
 			int otherUserId = console.getUserInputInteger("Enter ID of user you are sending to (0 to cancel): ");
-			BigDecimal amountToBeSent = new BigDecimal(console.getUserInput("Enter amount of money to be sent "));
+			boolean isValidUser = checkValidUserId(users,otherUserId);
+			if(!isValidUser) {
+				System.out.println("Invalid user ID. Try again");
+				return;
+			}
+			// Loop until user inputs a value less than his current balance
+			while(!isMoneyEnteredValid) {
+				amountToBeSent = new BigDecimal(console.getUserInput("Enter amount of money to be sent "));
+				viewCurrentBalance();
+				boolean isValidAmount = checkValidAmount(amountToBeSent);
+				if(!isValidAmount) {
+					System.out.println("Invalid amount. Try again");
+					continue;
+				}
+				if(currentBalance.compareTo(amountToBeSent) < 0) {
+					//throw  new NotEnoughBalanceException("Not enough balance");
+					System.out.println("Not enough balance to complete the transaction, try again");
+					continue;
+				}
+				else {
+					isMoneyEnteredValid = true;
+				}		
+			}		
 			TransferFunds transferFunds = new TransferFunds(currentUser.getUser().getId(), otherUserId, amountToBeSent);
 			Boolean isTransfered = restTemplate.exchange(API_BASE_URL + "/tenmo/transfer", HttpMethod.POST,
 					makeTransferEntity(transferFunds), Boolean.class).getBody();
@@ -193,9 +227,18 @@ public class App {
 			console.printError(e.getRawStatusCode() + " " + e.getStatusText());
 		} catch (ResourceAccessException e) {
 			console.printError(e.getMessage());
-		}
+		}/*catch(NotEnoughBalanceException e) {
+			console.printError(e.getMessage());
+		}*/
+		
+	}
 
-		// return users;
+	private boolean checkValidUserId(User[] users, int otherUserId) {
+		for(User user: users) {
+			if(user.getId() == otherUserId)
+				return true;
+		}
+		return false;
 	}
 
 	private void requestBucks() {
@@ -207,7 +250,17 @@ public class App {
 			System.out.println("Registered Users");
 			console.printUsers(users);
 			int otherUserId = console.getUserInputInteger("Enter ID of user you are requesting from (0 to cancel): ");
-			BigDecimal amountRequested = new BigDecimal(console.getUserInput("Enter amount of money to be sent "));
+			boolean isValidUser = checkValidUserId(users,otherUserId);
+			if(!isValidUser) {
+				System.out.println("Invalid user ID. Try again");
+				return;
+			}
+			BigDecimal amountRequested = new BigDecimal(console.getUserInput("Enter amount "));
+			boolean isValidAmount = checkValidAmount(amountRequested);
+			if(!isValidAmount) {
+				System.out.println("Invalid amount. Try again");
+				return;
+			}
 			TransferFunds transferFunds = new TransferFunds(otherUserId, currentUser.getUser().getId(),
 					amountRequested);
 			Boolean isRequested = restTemplate.exchange(API_BASE_URL + "/tenmo/request", HttpMethod.POST,
@@ -222,6 +275,13 @@ public class App {
 			console.printError(e.getMessage());
 		}
 
+	}
+
+	private boolean checkValidAmount(BigDecimal amount) {
+		if(amount.compareTo(BigDecimal.ZERO) > 0)
+			return true;
+		else
+			return false;
 	}
 
 	private void exitProgram() {

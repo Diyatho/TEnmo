@@ -110,8 +110,15 @@ public class ConsoleService {
 				 }
 			 }
 			 else if(transaction.getTransfer_type_id() == 1) {
-				 direction = "From:";
-				 personName = transaction.getSenderName();
+				 
+				 if(transaction.getSenderName().equals(currentUser.getUser().getUsername()))  {
+					 direction = "To:  ";
+					 personName = transaction.getReceiverName();
+					 } 
+					 if(transaction.getReceiverName().equals(currentUser.getUser().getUsername())) {
+						direction = "From:";
+						personName = transaction.getSenderName();
+					 }
 			 }
 			 
 			 
@@ -123,7 +130,14 @@ public class ConsoleService {
 	 
 	
 	 public void printPendingRequests(TransactionHistory[] requests) {
-		 
+		 if(requests == null) {
+			 System.out.println("There are no pending requests");
+			 return;
+		 }
+		 if(requests.length == 0) {
+			 System.out.println("There are no pending requests");
+			 return;
+		 }
 		 System.out.println("---------------------------------------");
 		 System.out.println("Pending Transfers");
 		 System.out.println("ID" + String.format("%1$12s", "To") + String.format("%1$18s", "Amount"));
