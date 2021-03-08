@@ -6,6 +6,8 @@ public class TransferFunds {
 	
 	private Integer senderId;
 	private Integer receiverId;
+	
+   // @Positive(message = "Amount cannot be negative")
 	private BigDecimal amount;
 	private Integer transferId;
 	

@@ -132,7 +132,7 @@ public class App {
 				return;
 			}
 			console.printPendingRequests(requests);
-			int transferId = console.getUserInputInteger("Please enter transfer ID to Approve/Reject (0 to cancel): ");
+			int transferId = console.getUserInputInteger("Please enter transfer ID to Approve/Reject (0 to cancel) ");
 			int action = console
 					.getUserInputInteger("1: Approve\n2: Reject\n0: Don't approve or reject\nPlease choose an option");
 			if (action == 1) {
@@ -202,6 +202,11 @@ public class App {
 			while(!isMoneyEnteredValid) {
 				amountToBeSent = new BigDecimal(console.getUserInput("Enter amount of money to be sent "));
 				viewCurrentBalance();
+				boolean isValidAmount = checkValidAmount(amountToBeSent);
+				if(!isValidAmount) {
+					System.out.println("Invalid amount. Try again");
+					continue;
+				}
 				if(currentBalance.compareTo(amountToBeSent) < 0) {
 					//throw  new NotEnoughBalanceException("Not enough balance");
 					System.out.println("Not enough balance to complete the transaction, try again");
@@ -250,7 +255,12 @@ public class App {
 				System.out.println("Invalid user ID. Try again");
 				return;
 			}
-			BigDecimal amountRequested = new BigDecimal(console.getUserInput("Enter amount of money to be sent "));
+			BigDecimal amountRequested = new BigDecimal(console.getUserInput("Enter amount "));
+			boolean isValidAmount = checkValidAmount(amountRequested);
+			if(!isValidAmount) {
+				System.out.println("Invalid amount. Try again");
+				return;
+			}
 			TransferFunds transferFunds = new TransferFunds(otherUserId, currentUser.getUser().getId(),
 					amountRequested);
 			Boolean isRequested = restTemplate.exchange(API_BASE_URL + "/tenmo/request", HttpMethod.POST,
@@ -265,6 +275,13 @@ public class App {
 			console.printError(e.getMessage());
 		}
 
+	}
+
+	private boolean checkValidAmount(BigDecimal amount) {
+		if(amount.compareTo(BigDecimal.ZERO) > 0)
+			return true;
+		else
+			return false;
 	}
 
 	private void exitProgram() {
