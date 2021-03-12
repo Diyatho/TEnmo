@@ -110,7 +110,13 @@ public class App {
 							makeAuthEntity(), TransactionHistory[].class)
 					.getBody();
 			console.printTransactions(history, currentUser);
-			int transferID = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel): ");
+			if(history.length == 0) {
+				return;
+			}
+			int transferID = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel) ");
+			if(transferID == 0) {
+				return;
+			}
 			console.printTransactionDetails(transferID, history);
 		} catch (RestClientResponseException e) {
 			console.printError(e.getRawStatusCode() + " " + e.getStatusText());
@@ -133,8 +139,12 @@ public class App {
 			}
 			console.printPendingRequests(requests);
 			int transferId = console.getUserInputInteger("Please enter transfer ID to Approve/Reject (0 to cancel) ");
+			if(transferId == 0) {
+				return;
+			}
 			int action = console
 					.getUserInputInteger("1: Approve\n2: Reject\n0: Don't approve or reject\nPlease choose an option");
+			
 			if (action == 1) {
 				actionResponse = approve(requests, transferId);
 				if (actionResponse) {
@@ -210,7 +220,7 @@ public class App {
 				if(currentBalance.compareTo(amountToBeSent) < 0) {
 					//throw  new NotEnoughBalanceException("Not enough balance");
 					System.out.println("Not enough balance to complete the transaction, try again");
-					continue;
+					return;
 				}
 				else {
 					isMoneyEnteredValid = true;
@@ -249,7 +259,7 @@ public class App {
 					.getBody();
 			System.out.println("Registered Users");
 			console.printUsers(users);
-			int otherUserId = console.getUserInputInteger("Enter ID of user you are requesting from (0 to cancel): ");
+			int otherUserId = console.getUserInputInteger("Enter ID of user you are requesting from (0 to cancel) ");
 			boolean isValidUser = checkValidUserId(users,otherUserId);
 			if(!isValidUser) {
 				System.out.println("Invalid user ID. Try again");
