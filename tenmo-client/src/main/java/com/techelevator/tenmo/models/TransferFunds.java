@@ -2,12 +2,15 @@ package com.techelevator.tenmo.models;
 
 import java.math.BigDecimal;
 
+import javax.validation.constraints.Positive;
+
+
 public class TransferFunds {
 	
 	private Integer senderId;
 	private Integer receiverId;
 	
-   // @Positive(message = "Amount cannot be negative")
+	//@Positive (message = "Amount cannot be negative")
 	private BigDecimal amount;
 	private Integer transferId;
 	

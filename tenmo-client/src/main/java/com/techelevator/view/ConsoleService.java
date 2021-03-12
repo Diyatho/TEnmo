@@ -93,6 +93,14 @@ public class ConsoleService {
 		 
 	 }
 	 public void printTransactions(TransactionHistory[] history, AuthenticatedUser currentUser) {
+		 if(history == null) {
+			 System.out.println("There are no transactions to display");
+			 return;
+		 }
+		 if(history.length == 0) {
+			 System.out.println("There are no transactions to display");
+			 return;
+		 }
 		 String direction = null, personName = null;
 		 System.out.println("---------------------------------------");
 		 System.out.println("Transfers");

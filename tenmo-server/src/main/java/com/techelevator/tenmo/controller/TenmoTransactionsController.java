@@ -4,6 +4,7 @@ package com.techelevator.tenmo.controller;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +19,7 @@ import com.techelevator.tenmo.model.UserAction;
 
 @RequestMapping("/tenmo")
 @RestController
+@PreAuthorize("isAuthenticated()")
 public class TenmoTransactionsController {
 	
 	  private UserDAO userDAO;
