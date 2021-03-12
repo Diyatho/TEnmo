@@ -148,9 +148,6 @@ public class ConsoleService {
 		 }
 		 
 	 }
-//	 public void printApprovalOptions() {
-//			 System.out.println(option.getTransfer_status_id() + ":" + " " + option.getTransfer_status_desc());
-//		 }
 	 
 	 
 	 public String addSpace(int lengthOfWord, int totalLength)
